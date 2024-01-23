@@ -62,14 +62,14 @@ Signal counter      : integer;
 type state_machine is (idle_st, active_st);
 signal state : state_machine := idle_st;
 
-signal mult_min_scale : std_logic_vector (1 downto 0) := "00";
+type state_machine2 is (multiply,substract,scale,calc_z);
+signal choice: state_machine2 := calc_z;
 
 begin
 
 cos_out <= std_logic_vector(output(17 downto 9)); -- output signal to output port, not accu cuz constantly changing in active_st
-
+-- seems to be only place stuff breaks, bruh
 process(clk, nrst)
-variable condition : STD_LOGIC := '0'; -- might not work cuz variable, we"ll see i guess
 begin
 
 if nrst = '1' then
@@ -84,32 +84,30 @@ elsif rising_edge(clk) then
 case state is
     when idle_st => if x /= signed(Sin_in) then -- maby putting into a different process changes stuff (doesnt wait until clk cycle, which it does for some reason. (prob cuz process sensitivity list i guess
                         x <= signed(Sin_in);
-                        condition := '1';
-                    end if;
-                    
-                    if condition = '1' then
-                        x_squared <= (x * x); -- make x->x^2/ z value -- just why does it break here? me confused
-                        condition := '0';
+                        accumulator <= (others=> '0');  -- put all values back to 0
+                        temp <= (others=> '0');
                         state <= active_st;
-                    end if;
+                    end if;         
     when active_st =>
-                        case mult_min_scale is
-                            WHEN "00" => temp <= x_squared * accumulator; -- when multiply
+                        case choice is
+                            WHEN multiply => temp <= x_squared * accumulator; -- when multiply
                                          --counter <= counter -1;
-                                         mult_min_scale <= "01";
-                            WHEN "01" => accumulator <= temp (35 downto 18);-- when scaling
-                                         mult_min_scale <= "10";
-                            WHEN "10" => if counter > 0 then   
+                                         choice <= scale;
+                            WHEN scale=> accumulator <= temp (35 downto 18);-- when scaling
+                                         choice <= substract;
+                            WHEN substract => if counter > 0 then   
                                             accumulator <= coeff(counter) -accumulator;-- when minus
                                             counter <= counter -1;                                      
-                                            mult_min_scale <= "00";
+                                            choice <= multiply;
                                          else 
                                             output <= coeff(counter) -accumulator;-- when minus     
-                                            counter <= coef_num;        
-                                            mult_min_scale <= "10";
+                                            counter <= coef_num;     
+                                            choice <= calc_z;
                                             state <= idle_st;
                                          end if;
-                            When others => mult_min_scale <= "10";
+                            WHEN calc_z => x_squared <= (x * x); -- make x->x^2/ z value
+                                         choice <= substract;
+                            When others => choice <= calc_z;
                          end case;               
     end case;
 end if;
