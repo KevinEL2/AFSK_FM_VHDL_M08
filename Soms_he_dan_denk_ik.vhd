@@ -34,12 +34,14 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity Soms_he_dan_denk_ik is
     generic(
-          coef_num : integer := 3
+          coef_num    : integer := 3;
+          coeff_resol : integer := 18;
+          input_resol : integer := 9
           );
-    Port ( clk : in STD_LOGIC;
-           nrst : in STD_LOGIC;
-           Sin_in : in STD_LOGIC_Vector(8 downto 0);
-           cos_out : out STD_LOGIC_Vector(8 downto 0));
+    Port ( clk      : in  STD_LOGIC;
+           nrst     : in  STD_LOGIC;
+           Sin_in   : in  STD_LOGIC_Vector(input_resol-1 downto 0);
+           cos_out  : out STD_LOGIC_Vector(input_resol-1 downto 0));
 end Soms_he_dan_denk_ik;
 
 architecture Behavioral of Soms_he_dan_denk_ik is
@@ -51,12 +53,12 @@ signal coeff: coefficients :=(
 "000001010101010101", 
 "000000000010110110");  -- right up to 3 decimals
 
-Signal x            : signed(8 downto 0) := "000000000";
-Signal x_squared    : signed(17 downto 0);
+Signal x            : signed(input_resol-1 downto 0) := "000000000";
+Signal x_squared    : signed((input_resol*2)-1 downto 0); -- iz 1
 
-Signal accumulator  : signed(17 downto 0) := (others=>'0');
-Signal output       : signed (17 downto 0) := (others=> '0');
-Signal temp         : signed(35 downto 0) := (others=>'0');
+Signal accumulator  : signed((input_resol*2)-1 downto 0) := (others=>'0'); --iz 1
+Signal output       : signed((input_resol*2)-1 downto 0) := (others=> '0'); -- another one
+Signal temp         : signed((input_resol*2)+coeff_resol-1 downto 0) := (others=>'0'); -- iz 1 + coeff 
 Signal counter      : integer;
 
 type state_machine is (idle_st, active_st);
@@ -67,13 +69,12 @@ signal choice: state_machine2 := calc_z;
 
 begin
 
-cos_out <= std_logic_vector(output(17 downto 9)); -- output signal to output port, not accu cuz constantly changing in active_st
+cos_out <= std_logic_vector(output((input_resol*2)-1 downto input_resol)); -- output signal to output port, not accu cuz constantly changing in active_st
 -- seems to be only place stuff breaks, bruh
 process(clk, nrst)
 begin
 
 if nrst = '1' then
-    cos_out <= "000000000";
     x_squared <= (others=>'0');
     accumulator <= (others=> '0');
     counter <= coef_num;
@@ -93,7 +94,7 @@ case state is
                             WHEN multiply => temp <= x_squared * accumulator; -- when multiply
                                          --counter <= counter -1;
                                          choice <= scale;
-                            WHEN scale=> accumulator <= temp (35 downto 18);-- when scaling
+                            WHEN scale=> accumulator <= temp (coeff_resol+(input_resol-1)*2-1 downto (coeff_resol+(input_resol-1)*2)-input_resol*2);-- when scaling -- completly f*cks up everything, rip or does it? <vsauce intro starts playing>
                                          choice <= substract;
                             WHEN substract => if counter > 0 then   
                                             accumulator <= coeff(counter) -accumulator;-- when minus
