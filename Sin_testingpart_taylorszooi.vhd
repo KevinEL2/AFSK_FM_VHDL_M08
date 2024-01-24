@@ -92,19 +92,19 @@ case state is
                     end if;         
     when active_st =>
                         case choice is
-                            WHEN multiply => if counter < -1 then
+                            WHEN multiply => if counter < 0 then
                                                 temp2 <= x * accumulator;
                                              else  
                                                 temp <= x_squared * accumulator; -- when multiply
                                              end if;
                                             choice <= scale;
-                            WHEN scale=> if counter < -1 then 
-                                            output <= temp ((input_resol-1)+coeff_resol-1 downto coeff_resol-input_resol-1); -- might not always works but whatever ill see later
+                            WHEN scale=> if counter < 0 then 
+                                            output <= temp2((input_resol-1)+coeff_resol-1 downto coeff_resol-input_resol-1); -- might not always works but whatever ill see later
                                             counter <= coef_num;     
                                             choice <= calc_z;
                                             state <= idle_st;
                                          else
-                                            accumulator <= temp (coeff_resol+(input_resol-1)*2-1 downto (coeff_resol+(input_resol-1)*2)-input_resol*2);-- when scaling -- completly f*cks up everything, rip or does it? <vsauce intro starts playing>
+                                            accumulator <= temp(coeff_resol+(input_resol-1)*2-1 downto (coeff_resol+(input_resol-1)*2)-input_resol*2);-- when scaling -- completly f*cks up everything, rip or does it? <vsauce intro starts playing>
                                             choice <= substract;
                                          end if;
                             WHEN substract => accumulator <= coeff(counter) -accumulator;-- when minus
