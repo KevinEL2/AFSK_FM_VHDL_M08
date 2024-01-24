@@ -55,6 +55,7 @@ signal sine : memory_type :=(128,152,176,198,218,234,245,253,
 signal accu: std_logic_vector(20 downto 0);
 signal lut_index, lut_index2: std_logic_vector(4 downto 0); -- is based on integer range, in my case 0 to NUM_POINTS (2^5 =32)
 signal fcw : std_logic_vector(15 downto 0):="0000010001000011"; -- fcw increased to get a more accurate output frequency -- freq_out is 10Mhz/(2^16/1091)/32 = 5202.29 Hz (but over 5200 but iz ok still)
+                                            
 signal sin_out_bus : std_logic_vector(7 downto 0);
 signal cos_out_bus : std_logic_vector(7 downto 0);
 
@@ -64,7 +65,7 @@ begin
 
 if nrst = '1' then         
             accu <= (others =>'0');         --synchronous reset
-            fcw <= "0000000011111100";
+            fcw <= "0000010001000011";
 elsif rising_edge(clk) then
     accu <= accu + fcw;
 end if;                                
