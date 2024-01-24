@@ -70,7 +70,6 @@ signal choice: state_machine2 := calc_z;
 begin
 
 cos_out <= std_logic_vector(output((input_resol*2)-1 downto input_resol)); -- output signal to output port, not accu cuz constantly changing in active_st
--- seems to be only place stuff breaks, bruh
 process(clk, nrst)
 begin
 
@@ -80,6 +79,8 @@ if nrst = '1' then
     counter <= coef_num;
     temp <= (others=> '0');
     output <= (others => '0');
+    x <= (others => '0');
+    state <= idle_st;
 elsif rising_edge(clk) then 
 
 case state is
