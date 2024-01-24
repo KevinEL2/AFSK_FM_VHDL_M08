@@ -21,10 +21,10 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use IEEE.std_logic_unsigned.all;
+use IEEE.std_logic_arith.ALL;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -32,14 +32,21 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity Substractor is
-    Port ( inputA : in STD_LOGIC;
-           inputB : in STD_LOGIC;
-           outputC : out STD_LOGIC);
+    Port ( inputA : in STD_LOGIC_vector(8 downto 0);
+           inputB : in STD_LOGIC_vector(8 downto 0);
+           outputC : out STD_LOGIC_vector(9 downto 0)
+          );
 end Substractor;
 
 architecture Behavioral of Substractor is
 
+signal tempA : signed(9 downto 0);
+signal tempB : signed (9 downto 0);
 begin
-
-
+process(inputA,inputB,tempA, tempB)
+begin
+tempA <= conv_signed(signed(inputA),10);
+tempB <= conv_signed(signed(inputB),10);
+outputC <= tempA - tempB;
+end process;
 end Behavioral;
